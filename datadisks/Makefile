@@ -1,16 +1,15 @@
-OWNER := fabianlee
-PROJECT := nestedkvm
-IP := 192.168.122.34
+PROJECT := datadisks
+IP := 192.168.122.32
 THISDIR := $(notdir $(CURDIR))
 
 apply:
-	terraform apply -auto-approve -var-file=$(PROJECT).tfvars
+	terraform apply -auto-approve ##-var-file=$(PROJECT).tfvars
 
 init:
 	terraform init
 
 ## recreate terraform resources
-rebuild: destroy apply
+rebuild: destroy build
 
 destroy:
 	terraform destroy -auto-approve

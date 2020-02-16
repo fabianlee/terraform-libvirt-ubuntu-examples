@@ -7,6 +7,9 @@ variable "cpu" { default = 2 }
 variable "prefixIP" { default = "192.168.122" }
 variable "octetIP" { default = "34" }
 
+# 4Gb for root filesystem
+variable "rootdiskBytes" { default = 1024*1024*1024*4 }
+
 # 120Mb for additional data disk, formatted with xfs for project quota support
 variable "diskBytes" { default = 1024*1024*120 }
 
@@ -22,6 +25,13 @@ resource "libvirt_volume" "os_image" {
   pool = "default"
   source = "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
   format = "qcow2"
+}
+# ubuntu release image comes with 2Gb root filesystem, this will increase
+resource "libvirt_volume" "os_image_resized" {
+  name           = "disk"
+  base_volume_id = libvirt_volume.os_image.id
+  pool           = "default"
+  size           = var.rootdiskBytes
 }
 
 # Use CloudInit ISO to add ssh-key to the instance
@@ -67,7 +77,7 @@ resource "libvirt_domain" "domain-ubuntu" {
   vcpu = var.cpu
   cpu = { mode = "host-passthrough" }
 
-  disk { volume_id = libvirt_volume.os_image.id }
+  disk { volume_id = libvirt_volume.os_image_resized.id }
   disk { volume_id = libvirt_volume.disk_data1.id }
   network_interface {
        network_name = "default"
