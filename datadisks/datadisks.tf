@@ -101,3 +101,7 @@ resource "libvirt_domain" "domain-ubuntu" {
 terraform { 
   required_version = ">= 0.12"
 }
+
+output "metadata" {
+  value = libvirt_domain.domain-ubuntu
+}

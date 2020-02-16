@@ -1,4 +1,3 @@
-OWNER := fabianlee
 PROJECT := nestedkvm
 IP := 192.168.122.34
 THISDIR := $(notdir $(CURDIR))
@@ -26,9 +25,8 @@ create-keypair:
 	@echo "THIDIR=$(THISDIR)"
 	ssh-keygen -t rsa -b 4096 -f id_rsa -C $(PROJECT) -N "" -q
 
-## IP address not immediately available
-get-ip:
-	terraform refresh
+metadata:
+	terraform refresh && terraform output
 
 ## validate syntax of cloud_init
 validate-cloud-config:

@@ -3,13 +3,13 @@ IP := 192.168.122.32
 THISDIR := $(notdir $(CURDIR))
 
 apply:
-	terraform apply -auto-approve ##-var-file=$(PROJECT).tfvars
+	terraform apply -auto-approve -var-file=$(PROJECT).tfvars
 
 init:
 	terraform init
 
 ## recreate terraform resources
-rebuild: destroy build
+rebuild: destroy apply
 
 destroy:
 	terraform destroy -auto-approve
@@ -25,9 +25,8 @@ create-keypair:
 	@echo "THIDIR=$(THISDIR)"
 	ssh-keygen -t rsa -b 4096 -f id_rsa -C $(PROJECT) -N "" -q
 
-## IP address not immediately available
-get-ip:
-	terraform refresh
+metadata:
+	terraform refresh && terraform output
 
 ## validate syntax of cloud_init
 validate-cloud-config:
