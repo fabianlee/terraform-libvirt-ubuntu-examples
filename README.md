@@ -1,4 +1,4 @@
-# Examples using the terraform-libvirt provider for Ubuntu hosts
+# terraform-libvirt provider for Ubuntu hosts
 
 * simple - simple host with DHCP address
 * staticip - host with static IP address
