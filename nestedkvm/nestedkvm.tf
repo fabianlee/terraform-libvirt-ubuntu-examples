@@ -1,15 +1,14 @@
 # variables that can be overriden
-variable "hostname" { default = "datadisks1" }
+variable "hostname" { default = "nestedkvm1" }
 variable "domain" { default = "example.com" }
 variable "ip_type" { default = "static" } # dhcp is other valid type
-variable "memoryMB" { default = 1024*1 }
-variable "cpu" { default = 1 }
+variable "memoryMB" { default = 1024*4 }
+variable "cpu" { default = 2 }
 variable "prefixIP" { default = "192.168.122" }
-variable "octetIP" { default = "32" }
+variable "octetIP" { default = "34" }
 
-# 20Mb for each additional data disk
-variable "diskBytes" { default = 1024*1024*20 }
-
+# 120Mb for additional data disk, formatted with xfs for project quota support
+variable "diskBytes" { default = 1024*1024*120 }
 
 
 # instance the provider
@@ -25,6 +24,13 @@ resource "libvirt_volume" "os_image" {
   format = "qcow2"
 }
 
+# Use CloudInit ISO to add ssh-key to the instance
+resource "libvirt_cloudinit_disk" "commoninit" {
+          name = "${var.hostname}-commoninit.iso"
+          pool = "default"
+          user_data = data.template_file.user_data.rendered
+          network_config = data.template_file.network_config.rendered
+}
 # extra data disk for xfs
 resource "libvirt_volume" "disk_data1" {
   name           = "${var.hostname}-disk-xfs"
@@ -32,21 +38,8 @@ resource "libvirt_volume" "disk_data1" {
   size           = var.diskBytes
   format         = "qcow2"
 }
-# extra data disk for ext4
-resource "libvirt_volume" "disk_data2" {
-  name           = "${var.hostname}-disk-ext4"
-  pool           = "default"
-  size           = var.diskBytes
-  format         = "qcow2"
-}
 
-# Use CloudInit ISO to add ssh-key to the instance
-resource "libvirt_cloudinit_disk" "commoninit" {
-          name = "${var.hostname}-commoninit.iso"
-          pool = "default"
-          user_data = data.template_file.user_data.rendered
-          network_config = data.template_file.network_config.rendered
-        }
+
 
 data "template_file" "user_data" {
   template = file("${path.module}/cloud_init.cfg")
@@ -68,17 +61,17 @@ data "template_file" "network_config" {
 
 # Create the machine
 resource "libvirt_domain" "domain-ubuntu" {
+  # domain name in libvirt, not hostname
   name = "${var.hostname}-${var.prefixIP}.${var.octetIP}"
   memory = var.memoryMB
   vcpu = var.cpu
-
-  network_interface { 
-       network_name = "default" 
-  }
+  cpu = { mode = "host-passthrough" }
 
   disk { volume_id = libvirt_volume.os_image.id }
   disk { volume_id = libvirt_volume.disk_data1.id }
-  disk { volume_id = libvirt_volume.disk_data2.id }
+  network_interface {
+       network_name = "default"
+  }
 
   cloudinit = libvirt_cloudinit_disk.commoninit.id
 
@@ -100,4 +93,11 @@ resource "libvirt_domain" "domain-ubuntu" {
 
 terraform { 
   required_version = ">= 0.12"
+}
+
+output "ips" {
+  #value = libvirt_domain.domain-ubuntu
+  #value = libvirt_domain.domain-ubuntu.*.network_interface
+  # show IP, run 'terraform refresh' if not populated
+  value = libvirt_domain.domain-ubuntu.*.network_interface.0.addresses
 }

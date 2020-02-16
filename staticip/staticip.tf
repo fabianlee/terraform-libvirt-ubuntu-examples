@@ -51,10 +51,9 @@ data "template_file" "network_config" {
 # Create the machine
 resource "libvirt_domain" "domain-ubuntu" {
   # domain name in libvirt, not hostname
-  name = "${var.hostname}-${var.prefixIP}-${var.octetIP}"
+  name = "${var.hostname}-${var.prefixIP}.${var.octetIP}"
   memory = var.memoryMB
   vcpu = var.cpu
-  cpu = { mode = "host-passthrough" }
 
   disk {
        volume_id = libvirt_volume.os_image.id
