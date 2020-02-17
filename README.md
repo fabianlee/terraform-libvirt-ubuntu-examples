@@ -11,4 +11,12 @@
 * net-install - Ubuntu net installer
 * iso-install - Ubuntu fat ISO installer
 * linkedclone - linked clone using backing file from ISO installer
+
+## Usage
+
+Go into any of the example directories:
+
+* make create-keypair
+* make init
+* make apply
  
