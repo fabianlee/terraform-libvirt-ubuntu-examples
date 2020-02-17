@@ -1,20 +1,16 @@
 # variables that can be overriden
-variable "hostname" { default = "simple" }
+variable "hostname" { default = "lclone-cinit" }
 variable "domain" { default = "example.com" }
-variable "memoryMB" { default = 1024*1 }
-variable "cpu" { default = 1 }
+variable "memoryMB" { default = 1024*2 }
+variable "cpu" { default = 2 }
+variable "ip_type" { default = "dhcp" }
+
+# for root filesystem
+variable "rootdiskBytes" { default = 1024*1024*1024*30 }
 
 # instance the provider
 provider "libvirt" {
   uri = "qemu:///system"
-}
-
-# fetch the latest ubuntu release image from their mirrors
-resource "libvirt_volume" "os_image" {
-  name = "${var.hostname}-os_image"
-  pool = "default"
-  source = "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
-  format = "qcow2"
 }
 
 # Use CloudInit ISO to add ssh-key to the instance
@@ -25,7 +21,6 @@ resource "libvirt_cloudinit_disk" "commoninit" {
           network_config = data.template_file.network_config.rendered
 }
 
-
 data "template_file" "user_data" {
   template = file("${path.module}/cloud_init.cfg")
   vars = {
@@ -35,8 +30,22 @@ data "template_file" "user_data" {
 }
 
 data "template_file" "network_config" {
-  template = file("${path.module}/network_config_dhcp.cfg")
+  template = file("${path.module}/network_config_${var.ip_type}.cfg")
 }
+
+
+# create a disk with a parent backing file
+resource "libvirt_volume" "os_image" {
+  name = "${var.hostname}.qcow2"
+  
+  # can specify size larger than backing disk
+  # but would need to be extended at OS level to be recognized
+  #size = var.rootdiskBytes
+
+  # parent disk
+  base_volume_pool = "default"
+  base_volume_name = "iso-install-root.qcow2"
+}  
 
 
 # Create the machine
@@ -45,9 +54,9 @@ resource "libvirt_domain" "domain-ubuntu" {
   memory = var.memoryMB
   vcpu = var.cpu
 
-  disk {
-       volume_id = libvirt_volume.os_image.id
-  }
+  disk { volume_id = libvirt_volume.os_image.id }
+
+  # uses DHCP
   network_interface {
        network_name = "default"
   }
@@ -74,7 +83,7 @@ terraform {
   required_version = ">= 0.12"
 }
 
-output "ips" {
-  # show IP, run 'terraform refresh' if not populated
-  value = libvirt_domain.domain-ubuntu.*.network_interface.0.addresses
+output "metadata" {
+  # run 'terraform refresh' if not populated
+  value = libvirt_domain.domain-ubuntu
 }

@@ -1,5 +1,5 @@
 # variables that can be overriden
-variable "hostname" { default = "datadisks1" }
+variable "hostname" { default = "datadisks" }
 variable "domain" { default = "example.com" }
 variable "ip_type" { default = "static" } # dhcp is other valid type
 variable "memoryMB" { default = 1024*1 }

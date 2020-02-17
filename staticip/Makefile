@@ -1,6 +1,6 @@
 THISDIR := $(notdir $(CURDIR))
 PROJECT := $(THISDIR)
-IP := 192.168.122.32
+IP := 192.168.122.31
 
 apply:
 	terraform apply -auto-approve -var-file=$(PROJECT).tfvars
