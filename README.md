@@ -1,5 +1,7 @@
 # terraform-libvirt provider for Ubuntu hosts
 
+Described in blog entry: https://fabianlee.org/2020/02/22/kvm-terraform-and-cloud-init-to-create-local-kvm-resources
+
 ## cloud-init
 * simple - simple host with DHCP address
 * staticip - host with static IP address
