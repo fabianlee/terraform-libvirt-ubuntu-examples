@@ -1,18 +1,19 @@
 THISDIR := $(notdir $(CURDIR))
 PROJECT := $(THISDIR)
 IP := 192.168.122.31
+TERRAFORM := terraform
 
 apply:
-	terraform apply -auto-approve -var-file=$(PROJECT).tfvars
+	$(TERRAFORM) apply -auto-approve -var-file=$(PROJECT).tfvars
 
 init:
-	terraform init
+	$(TERRAFORM) init
 
 ## recreate terraform resources
 rebuild: destroy apply
 
 destroy:
-	terraform destroy -auto-approve
+	$(TERRAFORM) destroy -auto-approve
 
 ## ssh into VM, unique after each rebuild so refresh known_hosts
 ssh:
@@ -26,7 +27,7 @@ create-keypair:
 	ssh-keygen -t rsa -b 4096 -f id_rsa -C $(PROJECT) -N "" -q
 
 metadata:
-	terraform refresh && terraform output
+	$(TERRAFORM) refresh && $(TERRAFORM) output
 
 ## validate syntax of cloud_init
 validate-cloud-config:

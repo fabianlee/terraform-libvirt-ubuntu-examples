@@ -17,7 +17,9 @@ provider "libvirt" {
 resource "libvirt_volume" "os_image" {
   name = "${var.hostname}-os_image"
   pool = "default"
-  source = "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
+  # using newest ubuntu focal 20.04
+  #source = "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
+  source = "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
   format = "qcow2"
 }
 
